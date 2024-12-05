@@ -18,6 +18,10 @@ defmodule AstralWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/socialban/api/public/v1/:accountId", DataController, :social_ban
+    get "/presence/api/v1/_/:accountId/settings/subscriptions", DataController, :subscriptions
+    get "/fortnite/api/game/v2/privacy/account/:accountId", DataController, :privacy_settings
+    get "/content-controls/:accountId", DataController, :content_controls
   end
 
   scope "/account/api", AstralWeb do
@@ -38,6 +42,7 @@ defmodule AstralWeb.Router do
   scope "/fortnite/api", AstralWeb do
     pipe_through :api
 
+   
     post "/game/v2/tryPlayOnPlatform/account/:accountId", DataController, :tryplayonplatform
     get "/versioncheck", DataController, :versioncheck
     get "/v2/versioncheck", DataController, :versioncheck
@@ -46,6 +51,7 @@ defmodule AstralWeb.Router do
     get "/cloudstorage/system", DataController, :access
     post "/game/v2/grant_access/*path", DataController, :access
     get "/game/v2/enabled_features", DataController, :access
+    get "/receipts/v1/account/:accountId/receipts", StorefrontController, :receipts
     put "/cloudstorage/user/:accountId/ClientSettings.Sav", DataController, :access
     get "/game/v2/twitch/*path", DataController, :access
     get "/calendar/v1/timeline", TimelineController, :timeline
@@ -67,7 +73,7 @@ defmodule AstralWeb.Router do
 
   scope "/fortnite/api/storefront/v2", AstralWeb do
     pipe_through :api
-
+    get "/catalog", StorefrontController, :catalog
     get "/keychain", StorefrontController, :keychain
   end
 
@@ -92,6 +98,27 @@ defmodule AstralWeb.Router do
   scope "/waitingroom/api", AstralWeb do
     get "/waitingroom", DataController, :waitingroom
   end
+
+scope "/content/api/pages", AstralWeb do
+  pipe_through :api
+
+  get "/fortnite-game", DataController, :fortnite_game
+end
+
+ scope "/friends/api", AstralWeb do
+    pipe_through :api
+
+    get "/public/blocklist/:accountId", DataController, :enabled
+    get "/public/friends/:accountId", DataController, :enabled
+    get "/public/list/fortnite/:accountId/recentPlayers", DataController, :enabled
+    get "/v1/:accountId/blocklist", DataController, :enabled
+    get "/v1/:accountId/settings", DataController, :enabled
+    get "/v1/:accountId/recent/fortnite", DataController, :enabled
+   
+  end
+
+
+
 
   # Other scopes may use custom stacks.
   # scope "/api", AstralWeb do

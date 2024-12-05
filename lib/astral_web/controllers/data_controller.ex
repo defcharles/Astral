@@ -15,6 +15,58 @@ defmodule AstralWeb.DataController do
     })
   end
 
+def fortnite_game(conn, _params) do
+     file_path = Path.join(["assets", "contentpages.json"])
+
+    if File.exists?(file_path) do
+      case File.read(file_path) do
+        {:ok, content} ->
+          case Jason.decode(content) do
+            {:ok, contentpages} ->
+              json(conn, contentpages)
+
+            {:error, _reason} ->
+              conn
+              |> put_status(:internal_server_error)
+              |> json(%{error: "Invalid JSON format in contentpages.json"})
+          end
+
+        {:error, reason} ->
+          conn
+          |> put_status(:internal_server_error)
+          |> json(%{error: "Error reading contentpages.json: #{inspect(reason)}"})
+      end
+    else
+      conn
+      |> put_status(:not_found)
+      |> json(%{error: "contentpages.json not found"})
+    end
+  end
+
+    def social_ban(conn, %{"accountId" => _account_id}) do
+    conn
+    |> put_status(200)
+    |> json([])
+  end
+
+ def subscriptions(conn, %{"accountId" => _account_id}) do
+    conn
+    |> put_status(200)
+    |> json([])
+  end
+
+ def privacy_settings(conn, %{"accountId" => _account_id}) do
+    conn
+    |> put_status(200)       
+    |> json([])
+  end
+
+  
+ def content_controls(conn, %{"accountId" => _account_id}) do
+    conn
+    |> json([])
+  end
+
   def lightswitch(conn, _params) do
     conn
     |> put_status(200)
@@ -57,12 +109,7 @@ defmodule AstralWeb.DataController do
     |> json(%{})
   end
 
-  def waiting_room(conn, _params) do
-    conn
-    |> put_status(:no_content)
-    |> json([])
-  end
-
+ 
   def waitingroom(conn, _params) do
     conn
     |> put_status(:no_content)
