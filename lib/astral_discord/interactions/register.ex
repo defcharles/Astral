@@ -66,7 +66,11 @@ defmodule AstralDiscord.Interactions.Register do
           %Profiles{account_id: account_id, type: "profile0", revision: 1},
           %Profiles{account_id: account_id, type: "common_core", revision: 1},
           %Profiles{account_id: account_id, type: "creative", revision: 1},
-          %Profiles{account_id: account_id, type: "common_public", revision: 1}
+          %Profiles{account_id: account_id, type: "common_public", revision: 1},
+          %Profiles{account_id: account_id, type: "metadata", revision: 1},
+          %Profiles{account_id: account_id, type: "theater0", revision: 1},
+          %Profiles{account_id: account_id, type: "outpost0", revision: 1},
+          %Profiles{account_id: account_id, type: "campaign", revision: 1}
         ]
 
         Enum.each(profiles, fn profile ->
@@ -160,6 +164,14 @@ defmodule AstralDiscord.Interactions.Register do
         is_stat: false
       },
       %{
+        account_id: account_id,
+        profile_id: "common_core",
+        template_id: "Token:campaignaccess",
+        value: %{level: 0},
+        quantity: 2,
+        is_stat: false
+      },
+       %{
         account_id: account_id,
         profile_id: "profile0",
         template_id: "Currency:MtxPurchased",

@@ -43,6 +43,31 @@ def fortnite_game(conn, _params) do
     end
   end
 
+def theater(conn, _params) do
+  file_path = Path.join(["assets", "worldstw.json"])
+
+  case File.read(file_path) do
+    {:ok, contents} ->
+      case Jason.decode(contents) do
+        {:ok, json} ->
+          conn
+          |> put_status(200)
+          |> json(json)
+
+        {:error, _} ->
+          conn
+          |> put_status(500)
+          |> json(%{error: "Failed to decode JSON"})
+      end
+
+    {:error, _} ->
+      conn
+      |> put_status(500)
+      |> json(%{error: "Failed to read file"})
+  end
+end
+
+
     def social_ban(conn, %{"accountId" => _account_id}) do
     conn
     |> put_status(200)
