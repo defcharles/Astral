@@ -12,6 +12,8 @@
 
 - Lobby Support
 
+**Setup Guide: [Click Here](https://github.com/itztiva/Astral/blob/main/SETUP.md)**
+
 ## To Do:
 
 - [ ] Automatic Item Shops
