@@ -11,7 +11,6 @@
 
 
 - Lobby Support
-- STW Support
 
 **Setup Guide: [Click Here](https://github.com/itztiva/Astral/blob/main/SETUP.md)**
 
@@ -24,7 +23,7 @@
 - [ ] ClientSettings
 - [x] Easy Setup Guide
 - [x] Discord Bot
-- [x] Save The World
+- [ ] Save The World
 - [ ] Authentication 
 - [ ] Stats
 - [ ] Friends
