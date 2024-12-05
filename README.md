@@ -18,7 +18,7 @@
 - [ ] Battle Pass
 - [ ] GameSessions
 - [ ] ClientSettings
-- [ ] Easy Setup Guide
+- [x] Easy Setup Guide
 - [x] Discord Bot
 - [ ] Save The World
 - [ ] Authentication 
