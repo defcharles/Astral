@@ -42,14 +42,15 @@ defmodule AstralWeb.Router do
   scope "/fortnite/api", AstralWeb do
     pipe_through :api
 
+    post "/feedback/Bug", DataController, :feedback
     get "/game/v2/world/info", DataController, :theater
     get "/matchmaking/session/findPlayer/:accountId", MatchmakingController, :findplayer
+    get "game/v2/matchmakingservice/ticket/player/:accountId", DataController, :access
     post "/game/v2/tryPlayOnPlatform/account/:accountId", DataController, :tryplayonplatform
     get "/versioncheck", DataController, :versioncheck
     get "/v2/versioncheck", DataController, :versioncheck
     get "/v2/versioncheck/*path", DataController, :versioncheck
     get "/cloudstorage/user/*path", DataController, :access
-    get "/cloudstorage/system", DataController, :access
     post "/game/v2/grant_access/*path", DataController, :access
     get "/game/v2/enabled_features", DataController, :access
     get "/receipts/v1/account/:accountId/receipts", StorefrontController, :receipts

@@ -1,5 +1,6 @@
 defmodule AstralWeb.DataController do
   use AstralWeb, :controller
+  require Logger
 
   def datarouter(conn, _params) do
     conn
@@ -67,6 +68,17 @@ def theater(conn, _params) do
   end
 end
 
+  def feedback(conn, %{"subject" => subject, "feedbackbody" => feedbackbody}) do
+  
+    Logger.info("Received feedback: Subject=#{subject}, Feedback Body=#{feedbackbody}")
+
+    conn
+    |> put_status(:ok)
+    |> json(%{
+      subject: subject,
+      feedbackbody: feedbackbody
+    })
+  end
 
     def social_ban(conn, %{"accountId" => _account_id}) do
     conn
