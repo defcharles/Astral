@@ -45,7 +45,7 @@ defmodule AstralWeb.Router do
     post "/feedback/Bug", DataController, :feedback
     get "/game/v2/world/info", DataController, :theater
     get "/matchmaking/session/findPlayer/:accountId", MatchmakingController, :findplayer
-    get "game/v2/matchmakingservice/ticket/player/:accountId", DataController, :access
+    get "/game/v2/matchmakingservice/ticket/player/:accountId", DataController, :access
     post "/game/v2/tryPlayOnPlatform/account/:accountId", DataController, :tryplayonplatform
     get "/versioncheck", DataController, :versioncheck
     get "/v2/versioncheck", DataController, :versioncheck
