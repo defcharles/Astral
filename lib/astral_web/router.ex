@@ -57,6 +57,9 @@ defmodule AstralWeb.Router do
     put "/cloudstorage/user/:accountId/ClientSettings.Sav", DataController, :access
     get "/game/v2/twitch/*path", DataController, :access
     get "/calendar/v1/timeline", TimelineController, :timeline
+    get "/cloudstorage/system", DataController, :c_system
+    get "/cloudstorage/system/config", DataController, :c_system
+    get "/cloudstorage/system/:filename", DataController, :c_fetch
   end
 
   scope "/fortnite/api/game/v2", AstralWeb do

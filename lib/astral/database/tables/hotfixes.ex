@@ -2,6 +2,8 @@ defmodule Astral.Database.Tables.Hotfixes do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @derive {Jason.Encoder, only: [:id, :filename, :value, :enabled]}
+
   schema "Hotfixes" do
     field :filename, :string
     # need to use special type for text since ecto doesnt support by default ( from what i know )

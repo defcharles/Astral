@@ -1,6 +1,9 @@
 defmodule AstralWeb.DataController do
   use AstralWeb, :controller
-  require Logger
+  alias Astral.Repo
+  alias Astral.Database.Tables.{Hotfixes}
+  alias Errors
+  import Ecto.Query
 
   def datarouter(conn, _params) do
     conn
@@ -155,5 +158,51 @@ defmodule AstralWeb.DataController do
     |> put_status(200)
     |> put_resp_header("Content-Type", "text/plain")
     |> text("true")
+  end
+
+  def c_system(conn, _params) do
+    hotfixes =
+      Hotfixes
+      |> where([h], h.enabled == true)
+      |> Repo.all()
+
+    hotfixes_data =
+      Enum.map(hotfixes, fn hotfix ->
+        %{
+          uniqueFilename: hotfix.filename,
+          filename: hotfix.filename,
+          hash: :crypto.hash(:sha, hotfix.value) |> Base.encode16(case: :lower),
+          hash256: :crypto.hash(:sha256, hotfix.value) |> Base.encode16(case: :lower),
+          length: byte_size(hotfix.value),
+          contentType: "application/octet-stream",
+          uploaded: DateTime.utc_now() |> DateTime.to_iso8601(),
+          storageType: "S3",
+          storageIds: %{},
+          doNotCache: true
+        }
+      end)
+
+    conn
+    |> put_status(200)
+    |> json(hotfixes_data)
+  end
+
+  def c_fetch(conn, %{"filename" => filename}) do
+    hotfix =
+      Hotfixes
+      |> where([h], h.filename == ^filename)
+      |> Repo.one()
+
+    case hotfix do
+      nil ->
+        conn
+        |> put_status(404)
+        |> json(%{})
+
+      _ ->
+        conn
+        |> put_status(200)
+        |> text(hotfix.value)
+    end
   end
 end
