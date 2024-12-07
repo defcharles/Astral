@@ -101,13 +101,13 @@ defmodule AstralWeb.Router do
     get "/waitingroom", DataController, :waitingroom
   end
 
-scope "/content/api/pages", AstralWeb do
-  pipe_through :api
+  scope "/content/api/pages", AstralWeb do
+    pipe_through :api
 
-  get "/fortnite-game", DataController, :fortnite_game
-end
+    get "/fortnite-game", DataController, :fortnite_game
+  end
 
- scope "/friends/api", AstralWeb do
+  scope "/friends/api", AstralWeb do
     pipe_through :api
 
     get "/public/blocklist/:accountId", DataController, :enabled
@@ -117,11 +117,6 @@ end
     get "/v1/:accountId/settings", DataController, :enabled
     get "/v1/:accountId/recent/fortnite", DataController, :enabled
   end
-
-    
-
-
-
 
   # Other scopes may use custom stacks.
   # scope "/api", AstralWeb do

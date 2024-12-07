@@ -19,7 +19,9 @@ defmodule AstralWeb.ProfileController do
 
       items =
         from(i in Items,
-          where: i.account_id == ^profile.account_id and i.profile_id == ^profile_id and i.is_stat == false
+          where:
+            i.account_id == ^profile.account_id and i.profile_id == ^profile_id and
+              i.is_stat == false
         )
         |> Repo.all()
         |> Enum.reduce(%{}, fn item, acc ->

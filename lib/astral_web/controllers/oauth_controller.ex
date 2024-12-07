@@ -81,6 +81,7 @@ defmodule AstralWeb.TokenController do
                   error_details =
                     Errors.basic()
                     |> Map.get(:general_error)
+
                   conn
                   |> put_status(:internal_server_error)
                   |> json(error_details)
@@ -104,6 +105,7 @@ defmodule AstralWeb.TokenController do
             |> put_status(:not_found)
             |> json(error_details)
         end
+
       "client_credentials" ->
         claims = %{
           "sub" => params["client_id"],
@@ -194,11 +196,11 @@ defmodule AstralWeb.TokenController do
                 conn
                 |> put_status(:not_found)
                 |> json(error_details)
-              end
+            end
 
           [] ->
             error_details =
-              Errors.authentication.oauth()
+              Errors.authentication().oauth()
               |> Map.get(:invalid_refresh)
 
             conn
@@ -207,7 +209,7 @@ defmodule AstralWeb.TokenController do
 
           _ ->
             error_details =
-              Errors.authentication.oauth()
+              Errors.authentication().oauth()
               |> Map.get(:invalid_refresh)
 
             conn
@@ -276,11 +278,11 @@ defmodule AstralWeb.TokenController do
                 conn
                 |> put_status(:not_found)
                 |> json(error_details)
-                end
+            end
 
           _ ->
             error_details =
-              Errors.authentication.oauth()
+              Errors.authentication().oauth()
               |> Map.get(:invalid_refresh)
 
             conn
@@ -317,7 +319,7 @@ defmodule AstralWeb.TokenController do
               })
             else
               error_details =
-                Errors.authentication.oauth()
+                Errors.authentication().oauth()
                 |> Map.get(:invalid_refresh)
 
               conn
@@ -333,7 +335,8 @@ defmodule AstralWeb.TokenController do
             conn
             |> put_status(:not_found)
             |> json(error_details)
-            end
+        end
+
       _ ->
         error_details =
           Errors.authentication()

@@ -13,7 +13,8 @@ defmodule Astral.Repo.Migrations.CreateBaseTables do
 
     create table(:Hotfixes) do
       add :filename, :string
-      add :value, :text # use correct type for text instead of custom type in migrations only
+      # use correct type for text instead of custom type in migrations only
+      add :value, :text
       add :enabled, :boolean, default: true, null: false
     end
 

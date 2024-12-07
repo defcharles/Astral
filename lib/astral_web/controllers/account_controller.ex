@@ -40,11 +40,13 @@ defmodule AstralWeb.AccountController do
       user ->
         conn
         |> put_status(:ok)
-        |> json([%{
-          id: user.account_id,
-          displayName: user.username,
-          externalAuths: %{}
-        }])
+        |> json([
+          %{
+            id: user.account_id,
+            displayName: user.username,
+            externalAuths: %{}
+          }
+        ])
     end
   end
 

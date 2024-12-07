@@ -4,13 +4,18 @@ defmodule Astral.Version do
 
     {season, build, cl, lobby} =
       case String.split(user_agent, "-") do
-        [_, build_id, _ | _] -> # get build id (CL) from user agent
+        # get build id (CL) from user agent
+        [_, build_id, _ | _] ->
           cl =
             case String.split(build_id, ",") do
-              [build_str | _] -> build_str
+              [build_str | _] ->
+                build_str
+
               _ ->
                 case String.split(build_id, " ") do
-                  [build_str | _] -> build_str
+                  [build_str | _] ->
+                    build_str
+
                   _ ->
                     case String.split(user_agent, "-") do
                       [_ | [build_id]] ->
@@ -18,7 +23,9 @@ defmodule Astral.Version do
                           [build_str | _] -> build_str
                           _ -> ""
                         end
-                      _ -> ""
+
+                      _ ->
+                        ""
                     end
                 end
             end
@@ -38,28 +45,37 @@ defmodule Astral.Version do
 
               _ ->
                 "2.0"
-            end # format build
+            end
 
+          # format build
+
+          # extract the season from the version
           season =
-            case String.split(build, ".") do # extract the season from the version
+            case String.split(build, ".") do
               [season_str | _] ->
                 case Integer.parse(season_str) do
                   {season, _} -> season
                   :error -> 2
                 end
-              _ -> 2
+
+              _ ->
+                2
             end
 
           real =
             case Float.parse(build) do
               {float, _} -> float
               :error -> 2.0
-            end # make the build ver a float
+            end
 
-          {season, real, cl, "LobbySeason#{season}"} # default values
+          # make the build ver a float
+
+          # default values
+          {season, real, cl, "LobbySeason#{season}"}
 
         _ ->
-          {2, 2.0, "", "LobbyWinterDecor"} # this is for s2 winter lobby
+          # this is for s2 winter lobby
+          {2, 2.0, "", "LobbyWinterDecor"}
       end
 
     %{

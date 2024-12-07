@@ -4,7 +4,8 @@ defmodule Astral.Database.Tables.Hotfixes do
 
   schema "Hotfixes" do
     field :filename, :string
-    field :value, Astral.Database.Types.Text # need to use special type for text since ecto doesnt support by default ( from what i know )
+    # need to use special type for text since ecto doesnt support by default ( from what i know )
+    field :value, Astral.Database.Types.Text
     field :enabled, :boolean, default: true
   end
 

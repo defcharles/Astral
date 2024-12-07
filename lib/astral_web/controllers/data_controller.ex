@@ -16,8 +16,8 @@ defmodule AstralWeb.DataController do
     })
   end
 
-def fortnite_game(conn, _params) do
-     file_path = Path.join(["assets", "contentpages.json"])
+  def fortnite_game(conn, _params) do
+    file_path = Path.join(["assets", "contentpages.json"])
 
     if File.exists?(file_path) do
       case File.read(file_path) do
@@ -44,32 +44,31 @@ def fortnite_game(conn, _params) do
     end
   end
 
-def theater(conn, _params) do
-  file_path = Path.join(["assets", "worldstw.json"])
+  def theater(conn, _params) do
+    file_path = Path.join(["assets", "worldstw.json"])
 
-  case File.read(file_path) do
-    {:ok, contents} ->
-      case Jason.decode(contents) do
-        {:ok, json} ->
-          conn
-          |> put_status(200)
-          |> json(json)
+    case File.read(file_path) do
+      {:ok, contents} ->
+        case Jason.decode(contents) do
+          {:ok, json} ->
+            conn
+            |> put_status(200)
+            |> json(json)
 
-        {:error, _} ->
-          conn
-          |> put_status(500)
-          |> json(%{error: "Failed to decode JSON"})
-      end
+          {:error, _} ->
+            conn
+            |> put_status(500)
+            |> json(%{error: "Failed to decode JSON"})
+        end
 
-    {:error, _} ->
-      conn
-      |> put_status(500)
-      |> json(%{error: "Failed to read file"})
+      {:error, _} ->
+        conn
+        |> put_status(500)
+        |> json(%{error: "Failed to read file"})
+    end
   end
-end
 
   def feedback(conn, %{"subject" => subject, "feedbackbody" => feedbackbody}) do
-  
     Logger.info("Received feedback: Subject=#{subject}, Feedback Body=#{feedbackbody}")
 
     conn
@@ -80,26 +79,25 @@ end
     })
   end
 
-    def social_ban(conn, %{"accountId" => _account_id}) do
+  def social_ban(conn, %{"accountId" => _account_id}) do
     conn
     |> put_status(200)
     |> json([])
   end
 
- def subscriptions(conn, %{"accountId" => _account_id}) do
+  def subscriptions(conn, %{"accountId" => _account_id}) do
     conn
     |> put_status(200)
     |> json([])
   end
 
- def privacy_settings(conn, %{"accountId" => _account_id}) do
+  def privacy_settings(conn, %{"accountId" => _account_id}) do
     conn
-    |> put_status(200)       
+    |> put_status(200)
     |> json([])
   end
 
-  
- def content_controls(conn, %{"accountId" => _account_id}) do
+  def content_controls(conn, %{"accountId" => _account_id}) do
     conn
     |> json([])
   end
@@ -146,7 +144,6 @@ end
     |> json(%{})
   end
 
- 
   def waitingroom(conn, _params) do
     conn
     |> put_status(:no_content)

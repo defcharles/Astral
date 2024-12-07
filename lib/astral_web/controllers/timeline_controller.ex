@@ -1,10 +1,12 @@
 defmodule AstralWeb.TimelineController do
   use AstralWeb, :controller
 
-  def timeline(conn, _params) do # no params are needed for this func
+  # no params are needed for this func
+  def timeline(conn, _params) do
     ua = get_req_header(conn, "user-agent") |> List.first() || ""
 
-    ver = Astral.Version.get(%{headers: %{"user-agent" => ua}}) # gets data from user-agent / ua
+    # gets data from user-agent / ua
+    ver = Astral.Version.get(%{headers: %{"user-agent" => ua}})
 
     active_events = [
       %{
@@ -13,7 +15,8 @@ defmodule AstralWeb.TimelineController do
         activeSince: "2020-01-01T00:00:00.000Z"
       },
       %{
-        eventType: "EventFlag.#{ver.lobby}", # usually formatted as LobbySeason{season}
+        # usually formatted as LobbySeason{season}
+        eventType: "EventFlag.#{ver.lobby}",
         activeUntil: "9999-01-01T00:00:00.000Z",
         activeSince: "2020-01-01T00:00:00.000Z"
       }

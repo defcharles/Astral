@@ -51,11 +51,17 @@ defmodule AstralDiscord.Interactions do
     end
   end
 
-  defp call_interaction(interaction, %Nostrum.Struct.ApplicationCommandInteractionData{name: "register", options: nil}) do
+  defp call_interaction(interaction, %Nostrum.Struct.ApplicationCommandInteractionData{
+         name: "register",
+         options: nil
+       }) do
     Register.handle_interaction(interaction, nil)
   end
 
-  defp call_interaction(interaction, %Nostrum.Struct.ApplicationCommandInteractionData{name: "register", options: options}) do
+  defp call_interaction(interaction, %Nostrum.Struct.ApplicationCommandInteractionData{
+         name: "register",
+         options: options
+       }) do
     Register.handle_interaction(interaction, options)
   end
 

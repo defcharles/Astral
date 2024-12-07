@@ -15,13 +15,13 @@ defmodule AstralWeb.StorefrontController do
     end
   end
 
- def receipts(conn, %{"accountId" => _account_id}) do
+  def receipts(conn, %{"accountId" => _account_id}) do
     conn
-    |> put_status(200)      
+    |> put_status(200)
     |> json([])
   end
-  
- def catalog(conn, _params) do
+
+  def catalog(conn, _params) do
     file_path = Path.join(["assets", "catalog.json"])
 
     case File.read(file_path) do
