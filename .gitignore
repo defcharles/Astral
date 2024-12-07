@@ -35,3 +35,6 @@ astral-*.tar
 npm-debug.log
 /assets/node_modules/
 
+
+config/config.exs
+config/dev.exs

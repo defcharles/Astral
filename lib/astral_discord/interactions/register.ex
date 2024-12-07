@@ -42,57 +42,138 @@ defmodule AstralDiscord.Interactions.Register do
 
   @impl Behaviour
   @spec handle_interaction(Interaction.t(), Behaviour.interaction_options()) :: map()
-  def handle_interaction(_interaction, options) do
+  def handle_interaction(interaction, options) do
     username = get_option_value(options, "username")
     email = get_option_value(options, "email")
     password = get_option_value(options, "password")
+    discord_id = to_string(interaction.user.id)
 
-    account_id = UUID.uuid4() |> String.replace("-", "")
+    existing_user = Repo.get_by(Accounts, discord_id: discord_id)
 
-    user_changeset =
-      Accounts.changeset(%Accounts{}, %{
-        email: email,
-        password: password,
-        username: username,
-        account_id: account_id,
-        banned: false,
-        is_server: false
-      })
+    if existing_user do
+      embed =
+        %Nostrum.Struct.Embed{}
+        |> put_title("Account Already Exists!")
+        |> put_description("You already have an account!")
+        |> put_color(0xFF0000)
 
-    case Repo.insert(user_changeset) do
-      {:ok, _user} ->
-        profiles = [
-          %Profiles{account_id: account_id, type: "athena", revision: 1},
-          %Profiles{account_id: account_id, type: "profile0", revision: 1},
-          %Profiles{account_id: account_id, type: "common_core", revision: 1},
-          %Profiles{account_id: account_id, type: "creative", revision: 1},
-          %Profiles{account_id: account_id, type: "common_public", revision: 1},
-          %Profiles{account_id: account_id, type: "metadata", revision: 1},
-          %Profiles{account_id: account_id, type: "theater0", revision: 1},
-          %Profiles{account_id: account_id, type: "outpost0", revision: 1},
-          %Profiles{account_id: account_id, type: "campaign", revision: 1}
-        ]
-
-        Enum.each(profiles, fn profile ->
-          case Repo.get_by(Profiles, account_id: profile.account_id, type: profile.type) do
-            nil ->
-              profile_changeset = Profiles.changeset(%Profiles{}, Map.from_struct(profile))
-              Repo.insert(profile_changeset)
-
-            _existing_profile ->
-              :ok
-          end
-        end)
-
-        create_items_and_attributes(account_id)
+      return_error(embed)
     end
 
-    embed =
-      %Nostrum.Struct.Embed{}
-      |> put_title("Astral Registration Completed!")
-      |> put_description("Your account has been successfully created!")
-      |> put_color(0x00FF00)
+    existing_email = Repo.get_by(Accounts, email: email)
+    existing_username = Repo.get_by(Accounts, username: username)
 
+    cond do
+      existing_email ->
+        embed =
+          %Nostrum.Struct.Embed{}
+          |> put_title("Email Taken!")
+          |> put_description("The provided email is already associated with an account.")
+          |> put_color(0xFF0000)
+
+        return_error(embed)
+
+      existing_username ->
+        embed =
+          %Nostrum.Struct.Embed{}
+          |> put_title("Username Taken!")
+          |> put_description("The provided username is already taken. Please choose a different username.")
+          |> put_color(0xFF0000)
+
+        return_error(embed)
+
+      !valid_email?(email) ->
+        embed =
+          %Nostrum.Struct.Embed{}
+          |> put_title("Invalid Email!")
+          |> put_description("The provided email is not valid. Please enter a valid email address.")
+          |> put_color(0xFF0000)
+
+        return_error(embed)
+
+      String.length(password) < 3 ->
+        embed =
+          %Nostrum.Struct.Embed{}
+          |> put_title("Weak Password!")
+          |> put_description("The password must be at least 3 characters long.")
+          |> put_color(0xFF0000)
+
+        return_error(embed)
+
+      true ->
+        account_id = UUID.uuid4() |> String.replace("-", "")
+
+        user_changeset =
+          Accounts.changeset(%Accounts{}, %{
+            email: email,
+            password: password,
+            username: username,
+            account_id: account_id,
+            discord_id: discord_id,
+            banned: false,
+            is_server: false
+          })
+
+        case Repo.insert(user_changeset) do
+          {:ok, _user} ->
+            profiles = [#
+              %Profiles{account_id: account_id, type: "athena", revision: 1},
+              %Profiles{account_id: account_id, type: "profile0", revision: 1},
+              %Profiles{account_id: account_id, type: "common_core", revision: 1},
+              %Profiles{account_id: account_id, type: "creative", revision: 1},
+              %Profiles{account_id: account_id, type: "common_public", revision: 1},
+              %Profiles{account_id: account_id, type: "metadata", revision: 1},
+              %Profiles{account_id: account_id, type: "theater0", revision: 1},
+              %Profiles{account_id: account_id, type: "outpost0", revision: 1},
+              %Profiles{account_id: account_id, type: "campaign", revision: 1}
+            ]
+
+            Enum.each(profiles, fn profile ->
+              case Repo.get_by(Profiles, account_id: profile.account_id, type: profile.type) do
+                nil ->
+                  profile_changeset = Profiles.changeset(%Profiles{}, Map.from_struct(profile))
+                  Repo.insert(profile_changeset)
+
+                _existing_profile ->
+                  :ok
+              end
+            end)
+
+            create_items_and_attributes(account_id)
+
+            embed =
+              %Nostrum.Struct.Embed{}
+              |> put_title("Astral Registration Completed!")
+              |> put_description("Your account has been successfully created!")
+              |> put_color(0x00FF00)
+
+            %{
+              type: InteractionCallbackType.channel_message_with_source(),
+              data: %{
+                embeds: [embed],
+                flags: 64
+              }
+            }
+
+          {:error, changeset} ->
+            embed =
+              %Nostrum.Struct.Embed{}
+              |> put_title("Register Failed")
+              |> put_description("There was an error creating your account.")
+              |> put_color(0xFF0000)
+
+            return_error(embed)
+        end
+    end
+  end
+
+  defp valid_email?(email) do
+    email
+    |> String.trim()
+    |> String.match?(~r/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/)
+  end
+
+  defp return_error(embed) do
     %{
       type: InteractionCallbackType.channel_message_with_source(),
       data: %{
