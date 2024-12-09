@@ -18,6 +18,7 @@ defmodule AstralWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/catalog/api/shared/bulk/offers", StorefrontController, :offers
     get "/socialban/api/public/v1/:accountId", DataController, :social_ban
     get "/presence/api/v1/_/:accountId/settings/subscriptions", DataController, :subscriptions
     get "/fortnite/api/game/v2/privacy/account/:accountId", DataController, :privacy_settings
@@ -41,7 +42,7 @@ defmodule AstralWeb.Router do
 
   scope "/fortnite/api", AstralWeb do
     pipe_through :api
-
+    
     post "/feedback/Bug", DataController, :feedback
     get "/game/v2/world/info", DataController, :theater
     get "/matchmaking/session/findPlayer/:accountId", MatchmakingController, :findplayer
@@ -69,6 +70,7 @@ defmodule AstralWeb.Router do
     post "/profile/:accountId/client/RefreshExpeditions", ProfileController, :queryprofile
     post "/profile/:accountId/client/QueryProfile", ProfileController, :queryprofile
     post "/profile/:accountId/client/ClientQuestLogin", ProfileController, :queryprofile
+    post "/profile/:accountId/client/EquipBattleRoyaleCustomization", ProfileController, :equipbattleroyalecustomization
 
     post "/profile/:accountId/client/IncrementNamedCounterStat", ProfileController, :queryprofile
     post "/profile/:accountId/client/SetMtxPlatform", ProfileController, :queryprofile
