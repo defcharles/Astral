@@ -42,7 +42,7 @@ defmodule AstralWeb.Router do
 
   scope "/fortnite/api", AstralWeb do
     pipe_through :api
-    
+
     post "/feedback/Bug", DataController, :feedback
     get "/game/v2/world/info", DataController, :theater
     get "/matchmaking/session/findPlayer/:accountId", MatchmakingController, :findplayer
@@ -71,7 +71,7 @@ defmodule AstralWeb.Router do
     post "/profile/:accountId/client/QueryProfile", ProfileController, :queryprofile
     post "/profile/:accountId/client/ClientQuestLogin", ProfileController, :queryprofile
     post "/profile/:accountId/client/EquipBattleRoyaleCustomization", ProfileController, :equipbattleroyalecustomization
-
+    post "/profile/:accountId/client/SetCosmeticLockerSlot", ProfileController, :setcosmeticlockerslot
     post "/profile/:accountId/client/IncrementNamedCounterStat", ProfileController, :queryprofile
     post "/profile/:accountId/client/SetMtxPlatform", ProfileController, :queryprofile
     post "/profile/:accountId/client/GetMcpTimeForLogin", ProfileController, :queryprofile
@@ -121,6 +121,7 @@ defmodule AstralWeb.Router do
     get "/v1/:accountId/blocklist", DataController, :enabled
     get "/v1/:accountId/settings", DataController, :enabled
     get "/v1/:accountId/recent/fortnite", DataController, :enabled
+    get "/v1/:accountId/summary", DataController, :enabled
   end
 
   # Other scopes may use custom stacks.

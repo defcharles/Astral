@@ -113,88 +113,259 @@ defmodule AstralWeb.ProfileController do
     end
   end
 
-# you can only equip one thing before it stops working and idk why so yea very dtc 
-# also tiva dont be on my dick i tried to do my best i did what you wanted me todo so yea enought yap for tonight
+  def setcosmeticlockerslot(conn, %{"accountId" => account_id}) do
+    slot_item = Map.get(conn.body_params, "itemToSlot") || ""
+    slot_type = Map.get(conn.body_params, "category") || ""
+    index = Map.get(conn.body_params, "slotIndex")
+    variant_updates = Map.get(conn.body_params, "variantUpdates")
+    profile_id = Map.get(conn.query_params, "profileId") || ""
+    loadout_id = Map.get(conn.body_params, "lockerItem") || ""
 
-def equipbattleroyalecustomization(conn, %{"accountId" => account_id}) do
-  slot_item = Map.get(conn.body_params, "itemToSlot")
-  slot_type = Map.get(conn.body_params, "slotName")
-  index = Map.get(conn.body_params, "indexWithinSlot")
-  profile_id = Map.get(conn.query_params, "profileId")
-
-  if Enum.any?([slot_item, slot_type, index, profile_id, account_id], &is_nil(&1)) do
-    conn |> json(%{error: "Missing required parameters."}) |> halt()
-  end
-
-  item_key = String.replace(slot_item, "item:", "")
-
-  if is_nil(profile_id) or is_nil(account_id) do
-    conn |> json(%{error: "Profile or account ID is required."}) |> halt()
-  end
-
-  profile = Repo.get_by(Profiles, account_id: account_id, type: profile_id)
-  account = Repo.get_by(Accounts, account_id: account_id)
-
-  if is_nil(profile) or is_nil(account) do
-    conn |> json(%{error: "Account or profile not found."}) |> halt()
-  end
-
-  changes = []
-
-  existing_item = Repo.one(from i in Items, where: i.account_id == ^account_id and i.profile_id == ^profile_id and i.template_id == ^item_key)
-
-  if is_nil(existing_item) do
-    if String.contains?(item_key, "_random") or item_key == "" do
-      changes = [%{changeType: "statModified", name: "favorite_#{String.downcase(slot_type)}", value: item_key}]
-      Repo.transaction(fn ->
-        Repo.update!(Profiles.changeset(profile, %{revision: profile.revision + 1}))
-        Repo.insert!(%Items{account_id: account_id, profile_id: profile_id, template_id: item_key, value: item_key})
-      end)
-    else
-      conn |> json(%{error: "Item could not be found"}) |> halt()
+    if Enum.any?([slot_item, slot_type, index, profile_id, account_id], &is_nil(&1)) do
+      conn |> json(%{error: "Missing required parameters."}) |> halt()
     end
-  end
 
-  slot = case slot_type do
-    "Dance" when is_number(index) and index in 0..5 -> "favorite_dance"
-    "Character" -> "favorite_character"
-    "Backpack" -> "favorite_backpack"
-    "Pickaxe" -> "favorite_pickaxe"
-    "Glider" -> "favorite_glider"
-    _ when slot_type in ["SkyDiveContrail", "MusicPack", "LoadingScreen"] -> "favorite_#{String.downcase(slot_type)}"
-    _ -> nil
-  end
+    item_key = String.replace(slot_item, "item:", "")
 
-  if slot do
-    stat_item = Repo.one(from i in Items, where: i.account_id == ^account_id and i.profile_id == ^profile_id and i.template_id == ^slot)
+    profile = Repo.get_by(Profiles, account_id: account_id, type: profile_id)
+    account = Repo.get_by(Accounts, account_id: account_id)
 
-    if stat_item do
-      updated_value = case slot_type do
-        "ItemWrap" when index in [-1, 0..6] -> List.duplicate(item_key, 7)
-        "Dance" when is_number(index) -> List.replace_at(stat_item.value, index, item_key)
-        _ -> item_key
+    if is_nil(profile) or is_nil(account) do
+      conn |> json(%{error: "Account or profile not found."}) |> halt()
+    end
+
+    loadout =
+      Repo.one(
+        from(i in Items,
+          where: i.account_id == ^account_id and i.profile_id == ^profile_id and i.template_id == ^loadout_id
+        )
+      )
+
+    if is_nil(loadout) do
+      conn |> json(%{error: "Loadout could not be found"}) |> halt()
+    end
+
+    loadout_data = loadout.value
+    changes = []
+
+    Repo.transaction(fn ->
+      loadout_data =
+        update_in(loadout_data, ["locker_slots_data", "slots", slot_type, "items", Access.at(index)], fn _ -> slot_item end)
+
+      loadout_changeset = Ecto.Changeset.change(loadout, %{value: loadout_data})
+      Repo.update!(loadout_changeset)
+
+      stat_key =
+        case slot_type do
+          "Dance" ->
+            if is_integer(index) and index >= 0 and index <= 5, do: "favorite_dance", else: nil
+
+          "ItemWrap" ->
+            "favorite_itemwraps"
+
+          category when category in ["Character", "Backpack", "Pickaxe", "Glider", "SkyDiveContrail", "MusicPack", "LoadingScreen"] ->
+            "favorite_#{String.downcase(category)}"
+
+          _ -> nil
+        end
+
+      if stat_key do
+        stat_item =
+          Repo.one(
+            from(i in Items,
+              where: i.account_id == ^account_id and i.profile_id == ^profile_id and i.template_id == ^stat_key
+            )
+          )
+
+        new_value =
+          case slot_type do
+            "Dance" when is_integer(index) ->
+              stat_item_value = stat_item && stat_item.value || []
+              if is_list(stat_item_value) and index >= 0 and index < length(stat_item_value) do
+                List.replace_at(stat_item_value, index, item_key || "")
+              else
+                stat_item_value
+              end
+
+            "ItemWrap" -> Enum.map(0..6, fn _ -> item_key || "" end)
+            _ -> item_key
+          end
+
+        if stat_item do
+          stat_item_changeset = Ecto.Changeset.change(stat_item, %{value: new_value})
+          Repo.update!(stat_item_changeset)
+        else
+          Repo.insert!(%Items{
+            account_id: account_id,
+            profile_id: profile_id,
+            template_id: stat_key,
+            value: new_value
+          })
+        end
       end
 
-      Repo.update!(Items.changeset(stat_item, %{value: updated_value}))
-      changes = [%{changeType: "statModified", name: slot, value: updated_value} | changes]
-      Repo.update!(Profiles.changeset(profile, %{revision: profile.revision + 1}))
-      conn |> json(profile_update(profile, changes))
-    end
+      profile_changeset = Ecto.Changeset.change(profile, %{revision: profile.revision + 1})
+      Repo.update!(profile_changeset)
+
+      transaction_changes = [
+        %{
+          changeType: "itemAttrChanged",
+          itemId: loadout_id,
+          attributeName: "locker_slots_data",
+          attributeValue: loadout_data
+        } | changes
+      ]
+      conn
+      |> json(%{
+        profileRevision: profile.revision + 1,
+        profileId: profile_id,
+        profileChangesBaseRevision: profile.revision + 1,
+        profileChanges: transaction_changes,
+        profileCommandRevision: profile.revision,
+        serverTime: DateTime.utc_now() |> DateTime.to_iso8601(),
+        responseVersion: 1
+      })
+    end)
+
+    conn
+    |> json(%{
+      profileRevision: profile.revision + 1,
+      profileId: profile_id,
+      profileChangesBaseRevision: profile.revision + 1,
+      profileChanges: changes,
+      profileCommandRevision: profile.revision,
+      serverTime: DateTime.utc_now() |> DateTime.to_iso8601(),
+      responseVersion: 1
+    })
   end
 
-  Repo.update!(Profiles.changeset(profile, %{revision: profile.revision + 1}))
-  conn |> json(profile_update(profile, changes))
-end
 
-defp profile_update(profile, changes) do
-  %{
-    "profileRevision" => profile.revision + 1,
-    "profileId" => profile.type,
-    "profileChangesBaseRevision" => profile.revision,
-    "profileChanges" => changes,
-    "profileCommandRevision" => profile.revision || 0,
-    "serverTime" => DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
-    "responseVersion" => 1
-  }
-end
+  def equipbattleroyalecustomization(conn, %{"accountId" => account_id}) do
+    slot_item = Map.get(conn.body_params, "itemToSlot")
+    slot_type = Map.get(conn.body_params, "slotName")
+    index = Map.get(conn.body_params, "indexWithinSlot")
+    profile_id = Map.get(conn.query_params, "profileId")
+
+    if Enum.any?([slot_item, slot_type, index, profile_id, account_id], &is_nil(&1)) do
+      conn |> json(%{error: "Missing required parameters."}) |> halt()
+    end
+
+    item_key = String.replace(slot_item, "item:", "")
+
+    if is_nil(profile_id) or is_nil(account_id) do
+      conn |> json(%{error: "Profile or account ID is required."}) |> halt()
+    end
+
+    profile = Repo.get_by(Profiles, account_id: account_id, type: profile_id)
+    account = Repo.get_by(Accounts, account_id: account_id)
+
+    if is_nil(profile) or is_nil(account) do
+      conn |> json(%{error: "Account or profile not found."}) |> halt()
+    end
+
+    changes = []
+
+    existing_item =
+      Repo.one(
+        from(i in Items,
+          where:
+            i.account_id == ^account_id and i.profile_id == ^profile_id and
+              i.template_id == ^item_key
+        )
+      )
+
+    if is_nil(existing_item) do
+      if String.contains?(item_key, "_random") or item_key == "" do
+        changes =
+          if slot_type do
+            [
+              %{
+                changeType: "statModified",
+                name: "favorite_#{String.downcase(slot_type)}",
+                value: item_key
+              }
+            ]
+          else
+            [%{changeType: "statModified", name: "favorite_unknown", value: item_key}]
+          end
+
+        Repo.transaction(fn ->
+          Repo.update!(Profiles.changeset(profile, %{revision: profile.revision + 1}))
+
+          Repo.insert!(%Items{
+            account_id: account_id,
+            profile_id: profile_id,
+            template_id: item_key,
+            value: item_key
+          })
+        end)
+      else
+        conn |> json(%{error: "Item could not be found"}) |> halt()
+      end
+    end
+
+    slot =
+      case slot_type do
+        "Dance" when is_number(index) and index in 0..5 ->
+          "favorite_dance"
+
+        "Character" ->
+          "favorite_character"
+
+        "Backpack" ->
+          "favorite_backpack"
+
+        "Pickaxe" ->
+          "favorite_pickaxe"
+
+        "Glider" ->
+          "favorite_glider"
+
+        _ when slot_type in ["SkyDiveContrail", "MusicPack", "LoadingScreen"] ->
+          "favorite_#{String.downcase(slot_type)}"
+
+        _ ->
+          nil
+      end
+
+    if slot do
+      stat_item =
+        Repo.one(
+          from(i in Items,
+            where:
+              i.account_id == ^account_id and i.profile_id == ^profile_id and
+                i.template_id == ^slot
+          )
+        )
+
+      if stat_item do
+        updated_value =
+          case slot_type do
+            "ItemWrap" when index in [-1, 0..6] -> List.duplicate(item_key, 7)
+            "Dance" when is_number(index) -> List.replace_at(stat_item.value, index, item_key)
+            _ -> item_key
+          end
+
+        Repo.update!(Items.changeset(stat_item, %{value: updated_value}))
+        changes = [%{changeType: "statModified", name: slot, value: updated_value} | changes]
+        Repo.update!(Profiles.changeset(profile, %{revision: profile.revision + 1}))
+        conn |> json(profile_update(profile, changes))
+      end
+    end
+
+    Repo.update!(Profiles.changeset(profile, %{revision: profile.revision + 1}))
+    conn |> json(profile_update(profile, changes))
+  end
+
+  defp profile_update(profile, changes) do
+    %{
+      "profileRevision" => profile.revision + 1,
+      "profileId" => profile.type,
+      "profileChangesBaseRevision" => profile.revision,
+      "profileChanges" => changes,
+      "profileCommandRevision" => profile.revision || 0,
+      "serverTime" => DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
+      "responseVersion" => 1
+    }
+  end
 end
